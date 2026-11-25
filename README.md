@@ -93,7 +93,7 @@ Official F-Droid build · Android 7.0+ · arm64 / arm / x86 / x86_64
 │      ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝   │
 ├────────────────────────────────────────────────────────────┤
 │              SHADOW_CRACK · ADVANCED APK SHIELD TOOLKIT        │
-│              v1.3.0  ·  100% FREE · NO CREDITS · NO LIMITS │
+│              v1.3.1  ·  100% FREE · NO CREDITS · NO LIMITS │
 ├────────────────────────────────────────────────────────────┤
 │  Mode     : FULL (unlimited protection)                    │
 │  Device   : SHADOWCRACK-A3F9C2B71E4D                           │
