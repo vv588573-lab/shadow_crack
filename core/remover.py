@@ -67,9 +67,26 @@ def _is_junk(name: str) -> bool:
             or base.lower().endswith(JUNK_SUFFIXES))
 
 
+def _dex_unusable_reason(zf: zipfile.ZipFile, name: str) -> str | None:
+    """Garbage dex = kabhi load nahi ho sakta (<112B header ya bad magic)."""
+    if not name.endswith(".dex"):
+        return None
+    try:
+        with zf.open(name) as f:
+            hdr = f.read(0x70)
+        if len(hdr) < 0x70:
+            return f"TOO_SHORT ({len(hdr)}B < 112B header)"
+        if not any(hdr.startswith(m) for m in scanner.DEX_MAGICS):
+            return "BAD_MAGIC"
+        # STUB (header size mismatch par bhi) → drop NAHI (kahi asli code na ho)
+    except Exception as e:
+        return f"UNREADABLE ({e})"
+    return None
+
+
 def remove_protection(apk_path: str, options: dict | None = None,
                       quiet: bool = False) -> dict:
-    opts = {"sign": True, "backup": True}
+    opts = {"sign": True, "backup": True, "drop_broken": True}
     if options:
         opts.update(options)
 
@@ -78,7 +95,8 @@ def remove_protection(apk_path: str, options: dict | None = None,
             info(msg)
 
     rep: dict = {"ok": False, "input": apk_path, "errors": [],
-                 "sig_removed": [], "junk_removed": [], "warnings": []}
+                 "sig_removed": [], "junk_removed": [], "warnings": [],
+                 "dex_dropped": []}
 
     if not os.path.isfile(apk_path) or not zipfile.is_zipfile(apk_path):
         rep["errors"].append("Valid APK/ZIP nahi hai")
@@ -111,6 +129,11 @@ def remove_protection(apk_path: str, options: dict | None = None,
                     if _is_junk(zi.filename):
                         rep["junk_removed"].append(zi.filename)
                         continue
+                    if opts.get("drop_broken", True):
+                        why = _dex_unusable_reason(zin, zi.filename)
+                        if why:
+                            rep["dex_dropped"].append((zi.filename, why))
+                            continue
                     data = zin.read(zi.filename)
                     new = zipfile.ZipInfo(zi.filename, date_time=zi.date_time)
                     new.create_system = zi.create_system
@@ -155,7 +178,8 @@ def remove_protection(apk_path: str, options: dict | None = None,
     # ── stage 4: notes — kya AUTO nahi hat sakta ──
     try:
         srep = scanner.scan(apk_path)
-        for n, st, extra in (srep.get("dex_status") or []):
+        rep["dex_status_in"] = srep.get("dex_status") or []
+        for n, st, extra in rep["dex_status_in"]:
             if st != "OK":
                 rep["warnings"].append(
                     f"{os.path.basename(n)} = {st} ({extra.strip()}) — "
@@ -247,6 +271,9 @@ def print_result(rep: dict) -> None:
     if rep["junk_removed"]:
         bx_row(paint("  Junk", C.GRY),
                paint(f"{len(rep['junk_removed'])} entries", C.GRN))
+    for n, why in rep.get("dex_dropped", []):
+        bx_row(paint(f"  DROPPED {os.path.basename(n)}"[:40], C.RED + C.B),
+               paint(why[:24], C.YEL))
     bx_row(paint("  Zipalign", C.GRY), paint(rep.get("align", "-"), C.GRN))
     if rep["signed"]:
         bx_row(paint("  Re-sign", C.GRY),
@@ -254,16 +281,31 @@ def print_result(rep: dict) -> None:
     else:
         bx_row(paint("  Re-sign", C.GRY),
                paint("⚠ unsigned (dekho upar warning)", C.YEL))
-    ds = rep.get("dex_status") or []
-    if ds:
-        bad = [d for d in ds if d[1] != "OK"]
-        if not bad:
-            bx_row(paint("  DEX check", C.GRY),
-                   paint(f"{len(ds)} dex OK ✅ (output intact)", C.GRN))
-        else:
-            for n, st, extra in bad:
-                bx_row(paint(f"  ⚠ {os.path.basename(n)}"[:40], C.YEL),
-                       paint(f"{st}"[:24], C.YEL + C.B))
+    def _dex_bads(ds):
+        return [(os.path.basename(n), st) for n, st, _ in ds if st != "OK"]
+
+    din = rep.get("dex_status_in") or []
+    dout = rep.get("dex_status") or []
+    if din or dout:
+        def _fmt(ds):
+            bad = _dex_bads(ds)
+            if not bad:
+                return paint(f"{len(ds)} dex OK ✅", C.GRN)
+            return paint("⚠ " + ", ".join(f"{n} {st}" for n, st in bad[:2]),
+                         C.YEL + C.B)
+        bx_row(paint("  DEX input", C.GRY), _fmt(din))
+        bx_row(paint("  DEX output", C.GRY), _fmt(dout))
+        in_bad, out_bad = _dex_bads(din), _dex_bads(dout)
+        if in_bad and [x[0] for x in in_bad] == [x[0] for x in out_bad] \
+                and [x[1] for x in in_bad] == [x[1] for x in out_bad]:
+            bx_row(paint("  Verdict", C.GRY),
+                   paint("pehle se tha — tool intact ✅", C.GRN))
+        elif not in_bad and out_bad:
+            bx_row(paint("  Verdict", C.GRY),
+                   paint("output bigada — report karo ⚠", C.RED + C.B))
+        elif not in_bad and not out_bad:
+            bx_row(paint("  Verdict", C.GRY),
+                   paint("dono OK — koi dex issue nahi ✅", C.GRN))
     bx_mid()
     bx_center(paint("  OUTPUT (Download folder)", C.MAG + C.B))
     bx_row(paint("  File", C.GRY), paint(os.path.basename(rep["output"]),
@@ -271,6 +313,11 @@ def print_result(rep: dict) -> None:
     bx_row(paint("  Path", C.GRY), paint(rep["output"], C.CYA)[:44])
     bx_row(paint("  SHA-256", C.GRY), paint(rep["sha_out"][:32] + "...",
                                             C.GRY))
+    if rep.get("dex_dropped"):
+        rep["warnings"].insert(0,
+            "unusable garbage DEX drop kiya (install block karta tha) — "
+            "original backup me hai; STUB dex (bada header) kabhi drop "
+            "nahi hota, sirf warn hota hai")
     if rep["warnings"]:
         bx_mid()
         bx_center(paint("  NOTE — ye AUTO nahi hata", C.YEL + C.B))
