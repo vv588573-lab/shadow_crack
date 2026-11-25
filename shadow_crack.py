@@ -408,6 +408,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--scan", metavar="APK", help="protection scanner report")
     p.add_argument("-r", "--remove", metavar="APK",
                    help="remove signature+junk, save to Download folder")
+    p.add_argument("--keep-broken-dex", action="store_true",
+                   help="unusable garbage DEX ko drop mat karo")
     p.add_argument("-y", "--yes", action="store_true", help="auto-confirm prompts")
     p.add_argument("--no-sign", action="store_true", help="skip signing stage")
     p.add_argument("--no-backup", action="store_true", help="skip original backup")
@@ -444,7 +446,8 @@ def main(argv: list | None = None) -> int:
     if args.remove:
         rep = remover.remove_protection(
             expand_path(args.remove),
-            {"sign": not args.no_sign, "backup": not args.no_backup},
+            {"sign": not args.no_sign, "backup": not args.no_backup,
+             "drop_broken": not args.keep_broken_dex},
             quiet=False)
         remover.print_result(rep)
         return 0 if rep.get("ok") else 1
