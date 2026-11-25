@@ -60,6 +60,7 @@ Official F-Droid build · Android 7.0+ · arm64 / arm / x86 / x86_64
 | 📦 **Batch Mode** | Poore folder ke saare APK ek saath protect + summary table |
 | 🧾 **History + SHA-256** | Har protect ka record with size delta & integrity hash |
 | 🔢 **Auto Versioning** | `app_SHADOWCRACK.apk` → `app_SHADOWCRACK_2.apk` → … (kabhi overwrite nahi) |
+| 🧹 **Remove Protection** | **[9]** — signature+junk strip → re-align → apne keystore se re-sign → APK **Download folder** me (apne APK ke liye) |
 | 🆓 **No Credits** | maxshell ki credits system yahan **nahi** — unlimited free |
 
 ---
@@ -92,7 +93,7 @@ Official F-Droid build · Android 7.0+ · arm64 / arm / x86 / x86_64
 │      ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝   │
 ├────────────────────────────────────────────────────────────┤
 │              SHADOW_CRACK · ADVANCED APK SHIELD TOOLKIT        │
-│              v1.1.1  ·  100% FREE · NO CREDITS · NO LIMITS │
+│              v1.2.0  ·  100% FREE · NO CREDITS · NO LIMITS │
 ├────────────────────────────────────────────────────────────┤
 │  Mode     : FULL (unlimited protection)                    │
 │  Device   : SHADOWCRACK-A3F9C2B71E4D                           │
@@ -105,6 +106,7 @@ Official F-Droid build · Android 7.0+ · arm64 / arm / x86 / x86_64
 │   [6]   Settings                                           │
 │   [7]   About                                              │
 │   [8]   Protection Scanner                                 │
+│   [9]   Remove Protection                                  │
 │   [0]   Exit                                               │
 ╰────────────────────────────────────────────────────────────╯
 ```
@@ -136,6 +138,7 @@ shadow_crack --verify app.apk         # signature check only
 shadow_crack --history                # show history
 shadow_crack --keystore               # keystore status
 shadow_crack --scan app.apk            # protection scanner report
+shadow_crack -r app.apk                # remove sig+junk → Download/
 shadow_crack --version                # version info
 ```
 
