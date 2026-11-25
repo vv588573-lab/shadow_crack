@@ -155,6 +155,12 @@ def remove_protection(apk_path: str, options: dict | None = None,
     # ── stage 4: notes — kya AUTO nahi hat sakta ──
     try:
         srep = scanner.scan(apk_path)
+        for n, st, extra in (srep.get("dex_status") or []):
+            if st != "OK":
+                rep["warnings"].append(
+                    f"{os.path.basename(n)} = {st} ({extra.strip()}) — "
+                    "stub/encrypted DEX protection hai; ye zip-tool se "
+                    "nahi khulta (original APK ya source rebuild)")
         if srep.get("packers"):
             names = ", ".join(p[0] for p in srep["packers"][:4])
             rep["warnings"].append(
@@ -182,6 +188,14 @@ def remove_protection(apk_path: str, options: dict | None = None,
             rep["errors"].append(f"download folder save fail: {e}")
             _cleanup(work2)
             return rep
+
+    # output DEX integrity (proof: output kharab nahi hai)
+    try:
+        with zipfile.ZipFile(out_path) as z:
+            rep["dex_status"] = scanner.dex_check(
+                z, [n for n in z.namelist() if n.endswith(".dex")])
+    except Exception:
+        rep["dex_status"] = []
 
     rep["ok"] = True
     rep["output"] = out_path
@@ -240,6 +254,16 @@ def print_result(rep: dict) -> None:
     else:
         bx_row(paint("  Re-sign", C.GRY),
                paint("⚠ unsigned (dekho upar warning)", C.YEL))
+    ds = rep.get("dex_status") or []
+    if ds:
+        bad = [d for d in ds if d[1] != "OK"]
+        if not bad:
+            bx_row(paint("  DEX check", C.GRY),
+                   paint(f"{len(ds)} dex OK ✅ (output intact)", C.GRN))
+        else:
+            for n, st, extra in bad:
+                bx_row(paint(f"  ⚠ {os.path.basename(n)}"[:40], C.YEL),
+                       paint(f"{st}"[:24], C.YEL + C.B))
     bx_mid()
     bx_center(paint("  OUTPUT (Download folder)", C.MAG + C.B))
     bx_row(paint("  File", C.GRY), paint(os.path.basename(rep["output"]),
