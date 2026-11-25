@@ -7,7 +7,7 @@
 set -u
 
 TOOL="SHADOW_CRACK"
-VER="1.2.0"
+VER="1.3.0"
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEST="$HOME/.shadow_crack"
 BIN_DIR="${PREFIX:-/usr/local}/bin"
