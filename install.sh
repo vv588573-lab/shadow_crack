@@ -59,15 +59,19 @@ echo
 
 # ── 1. Termux detection ──
 info "Environment check..."
-if [ -n "${PREFIX:-}" ] && [ -d "/data/data/com.termux" ]; then
+# Robust detection: PREFIX ke bina bhi chalta hai (pkg / dir / TERMUX_VERSION / HOME)
+IS_TERMUX=0
+if command -v pkg >/dev/null 2>&1 \
+   || [ -n "${TERMUX_VERSION:-}" ] \
+   || [ -d /data/data/com.termux ] \
+   || [ -n "${PREFIX:-}" ]; then
+  IS_TERMUX=1
   ok "Termux detected"
-  IS_TERMUX=1
-elif [ -n "${PREFIX:-}" ]; then
-  ok "Termux-like PREFIX found ($PREFIX)"
-  IS_TERMUX=1
 else
-  warn "Termux nahi mila — generic Linux mode (paths adjust ho jayenge)"
-  IS_TERMUX=0
+  case "${HOME:-}" in
+    *com.termux*) IS_TERMUX=1; ok "Termux detected (home path)" ;;
+    *) warn "Termux nahi mila — generic Linux mode (paths adjust ho jayenge)" ;;
+  esac
 fi
 
 # ── 2. Basic deps ──
@@ -158,10 +162,13 @@ printf "  ${Y}[!]${R} Android 11+ install issue? → Play Protect OFF → Unknow
 printf "  ${Y}[!]${R} Apna hi APK protect karo — kisi aur ka modify karna illegal hai\n"
 echo
 
-if [ "$IS_TERMUX" = 1 ] && [ -t 0 ]; then
-  read -r -p "  Abhi launch karein? [Y/n] " ans </dev/tty 2>/dev/null || ans="n"
+echo
+if [ -t 0 ]; then
+  read -r -p "  Abhi launch karein? [Y/n] " ans </dev/tty 2>/dev/null || ans=""
   case "${ans:-Y}" in
-    [Nn]*) info "Done — kabhi bhi chalao: shadow_crack" ;;
+    [Nn]*) info "Done — kabhi bhi chalao:  shadow_crack" ;;
     *)     exec python3 "$DEST/shadow_crack.py" ;;
   esac
+else
+  info "Launch karne ke liye type karo:  shadow_crack"
 fi
