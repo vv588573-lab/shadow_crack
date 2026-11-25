@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import re
+import struct
 import zipfile
 
 from .utils import paint, C, fmt_size, sha256_file, which
@@ -37,6 +38,38 @@ SOFT_SO = re.compile(
     r"protect|shield|guard|hard|jiagu|legu|shell|secmain|dexhelper|vmp|antihook|integrity",
     re.I,
 )
+
+
+DEX_MAGICS = (b"dex\n035", b"dex\n037", b"dex\n038", b"dex\n039",
+              b"cdex001")
+
+
+def dex_check(zf: zipfile.ZipFile, names: list) -> list:
+    """Har DEX ki integrity: magic + header file_size vs actual size.
+    STUB = header bada hai actual se → ye protection/protector marker hai."""
+    out = []
+    for n in sorted(names):
+        if not n.endswith(".dex"):
+            continue
+        try:
+            zi = zf.getinfo(n)
+            with zf.open(n) as f:
+                hdr = f.read(0x70)
+            if len(hdr) < 0x70:
+                out.append((n, "TOO_SHORT", f" sirf {len(hdr)}B"))
+                continue
+            if not any(hdr.startswith(m) for m in DEX_MAGICS):
+                out.append((n, "BAD_MAGIC", ""))
+                continue
+            declared = struct.unpack_from("<I", hdr, 32)[0]
+            if declared != zi.file_size:
+                out.append((n, "STUB",
+                            f"header {declared} ≠ actual {zi.file_size}"))
+            else:
+                out.append((n, "OK", str(zi.file_size)))
+        except Exception as e:
+            out.append((n, "ERR", str(e)[:24]))
+    return out
 
 
 def has_signing_block(path: str) -> bool:
@@ -112,6 +145,8 @@ def scan(path: str) -> dict:
         )
         rep["dex"] = [n for n in names
                       if re.match(r"classes\d*\.dex$", os.path.basename(n))]
+        rep["dex_status"] = dex_check(zf, [n for n in names
+                                           if n.endswith(".dex")])
         rep["so"] = [n for n in names if n.endswith(".so")]
 
         # ── packer / protection .so ──
@@ -208,6 +243,16 @@ def print_report(rep: dict) -> None:
                  C.YEL if rep["proguard_rules"] else C.GRY))
     bx_row(paint("  DEX / native .so", C.GRY),
            paint(f"{len(rep['dex'])} / {len(rep['so'])}", C.WHT))
+    ds = rep.get("dex_status") or []
+    if ds:
+        bad = [d for d in ds if d[1] != "OK"]
+        if not bad:
+            bx_row(paint("  DEX integrity", C.GRY),
+                   paint(f"{len(ds)} dex OK ✅", C.GRN))
+        else:
+            for n, st, extra in bad:
+                bx_row(paint(f"  ⚠ DEX {os.path.basename(n)}"[:40], C.YEL),
+                       paint(f"{st} {extra}"[:22], C.YEL + C.B))
     bx_mid()
     bx_center(paint("  PACKER / PROTECTION .so", C.CYA + C.B))
     if rep["packers"]:
