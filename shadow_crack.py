@@ -35,7 +35,7 @@ from core.utils import (  # noqa: E402
     clear_history, prompt, confirm, expand_path, fmt_size, ensure_home,
     KEYSTORE_FILE, HOME_DIR, which,
 )
-from core import protector, analyzer, signer, scanner  # noqa: E402
+from core import protector, analyzer, signer, scanner, remover  # noqa: E402
 
 BANNER = r"""
  ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗██╗ ██╗ ██╗
@@ -322,6 +322,23 @@ def action_about() -> None:
 
 
 # ─────────────────────────── menu loop ───────────────────────────
+def action_remove() -> None:
+    print()
+    bx_top()
+    bx_center(paint("  REMOVE PROTECTION", C.GRN + C.B))
+    bx_center(paint("  signature+junk hatao → Download folder", C.GRY))
+    bx_bot()
+    path = prompt("APK file path (ya 'back')")
+    if not path or path.lower() == "back":
+        return
+    apk = expand_path(path)
+    if not confirm("APK process karein? (original backup me safe rahega)", True):
+        info("cancel kiya")
+        return
+    rep = remover.remove_protection(apk, quiet=False)
+    remover.print_result(rep)
+
+
 def menu() -> None:
     ensure_home()
     banner()
@@ -335,6 +352,7 @@ def menu() -> None:
         "6": action_settings,
         "7": action_about,
         "8": action_scan,
+        "9": action_remove,
     }
     while True:
         print()
@@ -348,6 +366,7 @@ def menu() -> None:
         bx_row(paint("   [6]", C.MAG), paint("Settings", C.WHT))
         bx_row(paint("   [7]", C.MAG), paint("About", C.WHT))
         bx_row(paint("   [8]", C.MAG), paint("Protection Scanner", C.WHT))
+        bx_row(paint("   [9]", C.MAG), paint("Remove Protection", C.WHT))
         bx_row(paint("   [0]", C.MAG), paint("Exit", C.RED))
         bx_empty()
         bx_bot()
@@ -387,6 +406,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--verify", metavar="APK", help="verify APK signature only")
     p.add_argument("--keystore", action="store_true", help="keystore status")
     p.add_argument("--scan", metavar="APK", help="protection scanner report")
+    p.add_argument("-r", "--remove", metavar="APK",
+                   help="remove signature+junk, save to Download folder")
     p.add_argument("-y", "--yes", action="store_true", help="auto-confirm prompts")
     p.add_argument("--no-sign", action="store_true", help="skip signing stage")
     p.add_argument("--no-backup", action="store_true", help="skip original backup")
@@ -402,7 +423,7 @@ def main(argv: list | None = None) -> int:
 
     if args.menu or not any([args.protect, args.analyze, args.batch,
                              args.history, args.verify, args.keystore,
-                             args.scan]):
+                             args.scan, args.remove]):
         menu()
         return 0
 
@@ -418,6 +439,14 @@ def main(argv: list | None = None) -> int:
     if args.scan:
         rep = scanner.scan(expand_path(args.scan))
         scanner.print_report(rep)
+        return 0 if rep.get("ok") else 1
+
+    if args.remove:
+        rep = remover.remove_protection(
+            expand_path(args.remove),
+            {"sign": not args.no_sign, "backup": not args.no_backup},
+            quiet=False)
+        remover.print_result(rep)
         return 0 if rep.get("ok") else 1
 
     if args.protect:
