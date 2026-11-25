@@ -16,7 +16,7 @@ import shutil
 import hashlib
 import datetime
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 TOOL_NAME = "SHADOW_CRACK"
 TAGLINE = "ADVANCED APK SHIELD TOOLKIT"
 
