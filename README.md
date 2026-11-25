@@ -56,7 +56,7 @@ Official F-Droid build · Android 7.0+ · arm64 / arm / x86 / x86_64
 | ✍️ **Sign Engine** | `apksigner` → **v1+v2+v3** · fallback `jarsigner` (v1) · auto keystore |
 | 🔑 **Keystore Manager** | Auto-generate / rotate / info — 1000 din validity, local & private |
 | 🔍 **Deep Analyzer** | Package, version, SDK, permissions, DEX, native ABIs, cert, **risk flags** |
-| 🛡️ **Protection Scanner** | **[8]** — v1/v2/v3 signature, zipalign, debuggable/testOnly, **packer/protection .so** (Jiagu, Bangcle, Tersafe, legu…) + Remove/Restore guide (sirf apne APK) |
+| 🛡️ **Protection Scanner** | **[8]** — v1/v2/v3 signature, zipalign, debuggable/testOnly, **packer/protection .so** (Jiagu, Bangcle, Tersafe, legu…) + **DEX integrity** (stub/protected dex pakdo) + Remove/Restore guide (sirf apne APK) |
 | 📦 **Batch Mode** | Poore folder ke saare APK ek saath protect + summary table |
 | 🧾 **History + SHA-256** | Har protect ka record with size delta & integrity hash |
 | 🔢 **Auto Versioning** | `app_SHADOWCRACK.apk` → `app_SHADOWCRACK_2.apk` → … (kabhi overwrite nahi) |
@@ -93,7 +93,7 @@ Official F-Droid build · Android 7.0+ · arm64 / arm / x86 / x86_64
 │      ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝   │
 ├────────────────────────────────────────────────────────────┤
 │              SHADOW_CRACK · ADVANCED APK SHIELD TOOLKIT        │
-│              v1.2.0  ·  100% FREE · NO CREDITS · NO LIMITS │
+│              v1.3.0  ·  100% FREE · NO CREDITS · NO LIMITS │
 ├────────────────────────────────────────────────────────────┤
 │  Mode     : FULL (unlimited protection)                    │
 │  Device   : SHADOWCRACK-A3F9C2B71E4D                           │
