@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-╔══════════════════════════════════════════════════╗
-║   ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗ ██╗   ██╗
-║   ██╔════╝██║  ██║██╔══██╗██╔══██╗██╔═══██╗██║   ██║
-║   ███████╗███████║███████║██████╔╝██║   ██║██║   ██║
-║   ██╔════╝██╔══██║██╔══██║██╔══██╗██║   ██║██║   ██║
-║   ███████╗██║  ██║██║  ██║██║  ██║╚██████╔╝╚██████╔╝
-║   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝
-║   ██████╗  ██████╗ █████╗ ██████╗ ██╗  ██╗
-║   ██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
-║   ██║     ██████║ ███████║██║     ██████╔╝
-║   ██║     ██╔══██╗██╔══██╗██║     ██╔══██╗
-║   ╚██████╗██║  ██║██║  ██║╚██████╗██║  ██║
-║   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝
-║      SHADOW_CRACK · ADVANCED APK SHIELD TOOLKIT   ║
-╚══════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════╗
+║   ██████╗██╗  ██╗ █████╗ ██████╗  ██████╗██╗ ██╗ ██╗ ║
+║  ██╔════╝██║  ██║██╔══██╗██╗  ██╗██╗  ██╗██║ ██║ ██║ ║
+║   ██████╗███████║███████║██║  ██╗██║  ██║█████ █████ ║
+║  ██╔════╝██╔══██║██╔══██╗██║  ██╗██║  ██║██║ ██║ ██║ ║
+║   ██████╗██║  ██║██║  ██║╚██████╝╚██████╝╚██╝╚██╝    ║
+║  ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝╚═════╝     ║
+║ ██████╗  ██████╗ █████╗ ██████╗ ██╗  ██╗            ║
+║ ██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝            ║
+║ ██║     ██████║ ███████║██║     ██████╔╝            ║
+║ ██║     ██╔══██╗██╔══██╗██║     ██╔══██╗            ║
+║ ╚██████╗██║  ██║██║  ██║╚██████╗██║  ██             ║
+║ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚═╝  ╚═╝            ║
+║      SHADOW_CRACK · ADVANCED APK SHIELD TOOLKIT      ║
+╚══════════════════════════════════════════════════════╝
 SHADOW_CRACK v1.0.0 — 100% FREE · NO CREDITS · NO LIMITS
 """
 
@@ -35,15 +35,15 @@ from core.utils import (  # noqa: E402
     clear_history, prompt, confirm, expand_path, fmt_size, ensure_home,
     KEYSTORE_FILE, HOME_DIR, which,
 )
-from core import protector, analyzer, signer  # noqa: E402
+from core import protector, analyzer, signer, scanner  # noqa: E402
 
 BANNER = r"""
- ███████╗██╗  ██╗ █████╗ ██████╗  ██████╗ ██╗   ██╗
- ██╔════╝██║  ██║██╔══██╗██╔══██╗██╔═══██╗██║   ██║
- ███████╗███████║███████║██████╔╝██║   ██║██║   ██║
- ██╔════╝██╔══██║██╔══██║██╔══██╗██║   ██║██║   ██║
- ███████╗██║  ██║██║  ██║██║  ██║╚██████╔╝╚██████╔╝
- ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝
+  ██████╗██╗  ██╗ █████╗ ██████╗  ██████╗██╗ ██╗ ██╗
+ ██╔════╝██║  ██║██╔══██╗██╗  ██╗██╗  ██╗██║ ██║ ██║
+  ██████╗███████║███████║██║  ██╗██║  ██║█████ █████
+ ██╔════╝██╔══██║██╔══██╗██║  ██╗██║  ██║██║ ██║ ██║
+  ██████╗██║  ██║██║  ██║╚██████╝╚██████╝╚██╝╚██╝   
+ ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝  ╚═════╝╚═════╝    
  ██████╗  ██████╗ █████╗ ██████╗ ██╗  ██╗
  ██╔════╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
  ██║     ██████║ ███████║██║     ██████╔╝
@@ -130,6 +130,20 @@ def action_analyze() -> None:
             fail(e)
         return
     analyzer.print_report(rep)
+
+
+def action_scan() -> None:
+    print()
+    bx_top()
+    bx_center(paint("  PROTECTION SCANNER", C.CYA + C.B))
+    bx_center(paint("  APK me kaun si protection hai?", C.GRY))
+    bx_bot()
+    path = prompt("APK file path (ya 'back')")
+    if not path or path.lower() == "back":
+        return
+    apk = expand_path(path)
+    rep = scanner.scan(apk)
+    scanner.print_report(rep)
 
 
 def action_batch() -> None:
@@ -320,6 +334,7 @@ def menu() -> None:
         "5": action_keystore,
         "6": action_settings,
         "7": action_about,
+        "8": action_scan,
     }
     while True:
         print()
@@ -332,6 +347,7 @@ def menu() -> None:
         bx_row(paint("   [5]", C.MAG), paint("Keystore Manager", C.WHT))
         bx_row(paint("   [6]", C.MAG), paint("Settings", C.WHT))
         bx_row(paint("   [7]", C.MAG), paint("About", C.WHT))
+        bx_row(paint("   [8]", C.MAG), paint("Protection Scanner", C.WHT))
         bx_row(paint("   [0]", C.MAG), paint("Exit", C.RED))
         bx_empty()
         bx_bot()
@@ -370,6 +386,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--history", action="store_true", help="show history")
     p.add_argument("--verify", metavar="APK", help="verify APK signature only")
     p.add_argument("--keystore", action="store_true", help="keystore status")
+    p.add_argument("--scan", metavar="APK", help="protection scanner report")
     p.add_argument("-y", "--yes", action="store_true", help="auto-confirm prompts")
     p.add_argument("--no-sign", action="store_true", help="skip signing stage")
     p.add_argument("--no-backup", action="store_true", help="skip original backup")
@@ -384,7 +401,8 @@ def main(argv: list | None = None) -> int:
     ensure_home()
 
     if args.menu or not any([args.protect, args.analyze, args.batch,
-                             args.history, args.verify, args.keystore]):
+                             args.history, args.verify, args.keystore,
+                             args.scan]):
         menu()
         return 0
 
@@ -396,6 +414,11 @@ def main(argv: list | None = None) -> int:
             return 1
         analyzer.print_report(rep)
         return 0
+
+    if args.scan:
+        rep = scanner.scan(expand_path(args.scan))
+        scanner.print_report(rep)
+        return 0 if rep.get("ok") else 1
 
     if args.protect:
         out = expand_path(args.out) if args.out else None
